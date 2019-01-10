@@ -75,6 +75,14 @@ document.addEventListener("DOMContentLoaded", () => {
                   url: listing.url
                 }
                 console.log(body);
+                fetch("http://localhost:3000/listings", {
+                  method: "post",
+                  headers: {
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify(body)
+                }).then(res => res.json())
+                .then(console.log)
               })
             }
           });
