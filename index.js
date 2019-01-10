@@ -12,32 +12,67 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
 
+  function createVisitFavesButton(){
+    const visitFavesButton = document.createElement("button")
+    visitFavesButton.innerText = "Visit Favorites"
+    visitFavesButton.addEventListener("click", () => {
+      chrome.tabs.create({'url': BASE_URL}, function(tab) {
+      // Tab opened.
+      })
+    })
+
+    return visitFavesButton
+  }
+
   renderContent()
 
   function renderContent(){
 
     chrome.tabs.executeScript(tabId, {code: "window.location.href"}, (response) => {
       let tabUrl = response[0]
-      fetch(BASE_URL + "/listings/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({url: tabUrl})
-      }).then(res => res.json())
+      if (tabUrl.match("streeteasy.com/building/")) {
+        fetch(BASE_URL + "/listings/search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({url: tabUrl})
+        }).then(res => res.json())
         .then(json => {
           console.log(json);
-          // if (json.listing) {
-          //   renderEditAndDeleteButtons(json.listing)
-          // } else {
-          //   renderFavoriteButton()
-          // }
+          if (!!json.listing) {
+            renderEditAndDeleteButtons(json.listing)
+          } else {
+            renderFavoriteButton()
+          }
         })
+      } else {
+        htmlBody.append(createVisitFavesButton())
+      }
     })
   }
 
   function renderEditAndDeleteButtons(listing){
+    htmlBody.innerHTML = (`
+          <h3>Listing is in favorites</h3>
+        `)
 
+
+      const editButton = document.createElement("button")
+      editButton.innerText = "Edit Listing"
+      editButton.addEventListener("click", () => handleListingInfo([listing]))
+
+      const deleteButton = document.createElement("button")
+      deleteButton.innerText = "Delete From Favorites"
+      deleteButton.addEventListener("click", () => {
+        fetch(BASE_URL + "/listings/" + `${listing.id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }).then(setListeners)
+      })
+      htmlBody.append(createVisitFavesButton(), document.createElement("br"), editButton, document.createElement("br"), deleteButton)
   }
 
   function renderFavoriteButton(){
@@ -95,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <label for="gym">Gym?</label>
         <input type="checkbox" ${listing.gym && "checked"} name="gym" /><br />
         <label for="gym">Notes:</label>
-        <input type="tezxt" name="notes" /><br />
+        <input type="text" name="notes" value=${listing.notes} /><br />
         <input type="submit" />
       `)
       htmlBody.innerHTML = ""
@@ -143,19 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (json.errors) {
       alert(json.errors.join(" "))
     } else {
-      htmlBody.innerHTML = (`
-          <h3>Successfully Added!</h3>
-          <a href="/"><button>Visit Favorites</button></a><br />
-          <button id="delete">Delete From Favorites</button>
-        `)
-      document.querySelector("button#delete").addEventListener("click", () => {
-        fetch(BASE_URL + "/listings/" + `${json.listing.id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json"
-          }
-        }).then(setListeners)
-      })
+      renderEditAndDeleteButtons(json.listing)
     }
   }
 })

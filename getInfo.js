@@ -59,5 +59,6 @@ if (location.href.match("streeteasy.com/building/")) {
     }
   })
   listing.url = location.href
+  listing.notes = ""
   listing
 }
