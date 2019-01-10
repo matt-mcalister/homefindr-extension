@@ -70,15 +70,17 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: {
             "Content-Type": "application/json"
           }
-        }).then(setListeners)
+        }).then(renderFavoriteButton)
       })
       htmlBody.append(createVisitFavesButton(), document.createElement("br"), editButton, document.createElement("br"), deleteButton)
   }
 
   function renderFavoriteButton(){
-    htmlBody.innerHTML = "<button id='favorite'>Favorite?</button>"
-    const button = document.querySelector("button#favorite")
+    const button = document.createElement("button")
+    button.innerText = "Add to Favorites"
     button.addEventListener("click", addFavorite)
+    htmlBody.innerHTML = "<h3>Listing is not currently in Favorites</h3>"
+    htmlBody.append(createVisitFavesButton(), document.createElement("br"), button)
   }
 
   function addFavorite(){
@@ -130,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <label for="gym">Gym?</label>
         <input type="checkbox" ${listing.gym && "checked"} name="gym" /><br />
         <label for="gym">Notes:</label>
-        <input type="text" name="notes" value=${listing.notes} /><br />
+        <input type="text" name="notes" value="${listing.notes}" /><br />
         <input type="submit" />
       `)
       htmlBody.innerHTML = ""
