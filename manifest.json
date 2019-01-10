@@ -7,7 +7,13 @@
      "default_icon": "favehome.png",
      "default_popup": "index.html"
    },
+   "background": {
+     "scripts": ["background.js"],
+     "persistent": false
+   },
    "permissions": [
+      "identity",
+      "identity.email",
       "cookies",
       "tabs",
       "http://*/",

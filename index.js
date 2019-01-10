@@ -1,5 +1,13 @@
 const BASE_URL = "http://localhost:3000"
 
+let port = chrome.extension.connect({
+      name: "StreetFaves"
+});
+port.postMessage("Hi BackGround");
+port.onMessage.addListener(function(msg) {
+      console.log("message recieved" + msg);
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   const htmlBody = document.querySelector("body")
   let tabId;
@@ -7,11 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
         "currentWindow": true,
         "active": true
     }, function (tabs) {
+      if (tabs) {
         for (tab in tabs) {
           tabId = tabs[tab].id
         }
+      }
     })
 
+    renderContent()
   function createVisitFavesButton(){
     const visitFavesButton = document.createElement("button")
     visitFavesButton.innerText = "Visit Favorites"
@@ -24,13 +35,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return visitFavesButton
   }
 
-  renderContent()
 
   function renderContent(){
 
     chrome.tabs.executeScript(tabId, {code: "window.location.href"}, (response) => {
-      let tabUrl = response[0]
-      if (tabUrl.match("streeteasy.com/building/")) {
+      let tabUrl = response && response[0]
+      if (!!response && tabUrl.match("streeteasy.com/building/")) {
         fetch(BASE_URL + "/listings/search", {
           method: "POST",
           headers: {
