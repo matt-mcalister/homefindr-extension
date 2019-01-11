@@ -2,9 +2,9 @@ const BASE_URL = "http://localhost:3000"
 let port = chrome.extension.connect({
       name: "StreetFaves"
 });
-port.postMessage("Hi BackGround");
-port.onMessage.addListener(email => {
-
+port.postMessage("Get User Info");
+port.onMessage.addListener(backgroundJson => {
+  console.log(backgroundJson);
   const htmlBody = document.querySelector("body")
   let tabId;
   chrome.tabs.query({
@@ -34,25 +34,32 @@ port.onMessage.addListener(email => {
 
 
   function renderContent(){
-    console.log(tabId);
+
     chrome.tabs.executeScript(tabId, {code: "window.location.href"}, (response) => {
       let tabUrl = response && response[0]
-      if (!!response && tabUrl.match("streeteasy.com/building/")) {
-        fetch(BASE_URL + "/listings/search", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({url: tabUrl, email: email})
-        }).then(res => res.json())
-        .then(json => {
-          console.log(json);
-          if (!!json.listing) {
-            renderEditAndDeleteButtons(json.listing)
+      if (backgroundJson.user !== "User Not Found" && !!response && tabUrl.match("streeteasy.com/building/")) {
+        // fetch(BASE_URL + "/listings/search", {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json"
+        //   },
+        //   body: JSON.stringify({url: tabUrl, email: backgroundJson.user.email})
+        // }).then(res => res.json())
+        // .then(json => {
+        //   console.log(json);
+        //   if ()
+          let listing;
+          if (backgroundJson.user.listings) {
+            listing = backgroundJson.user.listings.find(l => {
+              return l.url.includes(tabUrl)
+            })
+          }
+          if (listing) {
+            renderEditAndDeleteButtons(listing)
           } else {
             renderFavoriteButton()
           }
-        })
+        // })
       } else {
         htmlBody.append(createVisitFavesButton())
       }
@@ -67,7 +74,7 @@ port.onMessage.addListener(email => {
 
       const editButton = document.createElement("button")
       editButton.innerText = "Edit Listing"
-      editButton.addEventListener("click", () => handleListingInfo([listing]))
+      editButton.addEventListener("click", () => handleListingInfo([listing], true))
 
       const deleteButton = document.createElement("button")
       deleteButton.innerText = "Delete From Favorites"
@@ -95,10 +102,9 @@ port.onMessage.addListener(email => {
     }
 
 
-    function handleListingInfo(response) {
+    function handleListingInfo(response, edit=false) {
       if (response.length > 0) {
         const listing = response[0]
-        console.log(listing);
         const form = document.createElement("form")
         form.innerHTML = (`
           <input type="hidden" value="${listing.url}" name="url"  /><br />
@@ -140,8 +146,27 @@ port.onMessage.addListener(email => {
           <input type="checkbox" ${listing.gym && "checked"} name="gym" /><br />
           <label for="gym">Notes:</label>
           <input type="text" name="notes" value="${listing.notes}" /><br />
-          <input type="submit" />
+          <label for="hunt_id">Hunt:</label>
           `)
+          const dropdown = document.createElement("select")
+          dropdown.name = "hunt_id"
+          let option = document.createElement("option")
+          option.value = "Create New Hunt"
+          option.innerText = "Create New Hunt"
+          dropdown.append(option)
+          backgroundJson.user.hunts.forEach((h, i) => {
+            option = document.createElement("option")
+            option.innerText = h.name
+            option.value = h.id
+            if (i === backgroundJson.user.hunts.length - 1) {
+              option.selected = true
+            }
+            dropdown.append(option)
+          })
+          form.append(dropdown)
+          const submit = document.createElement("input")
+          submit.type = "submit"
+          form.append(submit)
           htmlBody.innerHTML = ""
           htmlBody.append(form)
           form.addEventListener("submit", createListing)
@@ -171,7 +196,8 @@ port.onMessage.addListener(email => {
           gym: e.target.gym.checked,
           url: e.target.url.value,
           notes: e.target.notes.value,
-          email: email
+          hunt_id: e.target.hunt_id.value,
+          email: backgroundJson.user.email
         }
         fetch(BASE_URL + "/listings", {
           method: "post",
