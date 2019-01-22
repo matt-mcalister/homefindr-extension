@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000"
+const BASE_URL = "https://home-findr.herokuapp.com"
 chrome.identity.getProfileUserInfo(info => {
 
 
