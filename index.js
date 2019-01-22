@@ -37,7 +37,7 @@ port.onMessage.addListener(backgroundJson => {
 
     chrome.tabs.executeScript(tabId, {code: "window.location.href"}, (response) => {
       let tabUrl = response && response[0]
-      if (backgroundJson.user !== "User Not Found" && !!response && tabUrl.match("streeteasy.com/building/")) {
+      if (backgroundJson.user !== "User Not Found" && !!response && (tabUrl.match("streeteasy.com/building/") || tabUrl.match("nakedapartments.com/apartment/"))) {
         // fetch(BASE_URL + "/listings/search", {
         //   method: "POST",
         //   headers: {

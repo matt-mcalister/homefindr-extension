@@ -1,7 +1,7 @@
 {
-   "name": "StreetFaves",
+   "name": "Home-Findr",
    "version": "1.0",
-   "description": "Build an Extension!",
+   "description": "An extension to add listings to your Home-Findr account.",
    "manifest_version": 2,
    "browser_action": {
      "default_icon": "favehome.png",
@@ -16,7 +16,9 @@
       "identity.email",
       "cookies",
       "tabs",
-      "http://*/",
-      "https://*/"
+      "http://www.streeteasy.com/",
+      "https://www.streateasy.com/",
+      "http://www.nakedapartments.com/"
+      "https://www.nakedapartments.com/"
     ]
  }
